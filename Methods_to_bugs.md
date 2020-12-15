@@ -113,7 +113,7 @@ builder.CloseFile();    (Version: 5.6.3 (build:2)
 
 ### Text document API/ApiDocument/GetAllTablesOnPage
 
-`Этот код работает у меня как-то странно. Когда я запускаю его в первый раз, просто появляются две таблицы, но ряд не удаляется. Когда я запускаю его сразу после этого еще один раз, то появляются еще две таблицы и ряд у одной из них уже удаляется (как и должен). Т.е. метод вроде работает, но я не понимаю, почему только со второго раза.`
+Этот код работает у меня как-то странно. Когда я запускаю его в первый раз, просто появляются две таблицы, но ряд не удаляется. Когда я запускаю его сразу после этого еще один раз, то появляются еще две таблицы и ряд у одной из них уже удаляется (как и должен). Т.е. метод вроде работает, но я не понимаю, почему только со второго раза.
 
 ```js
 builder.CreateFile("docx");
@@ -135,34 +135,56 @@ builder.SaveFile("docx", "GetAllTablesOnPage.docx");
 builder.CloseFile();
 ```
 
+>Во-первых данный метод можно в два раза упростить
+
+```js
+    var oDocument = Api.GetDocument();
+    oTableStyle = oDocument.GetStyle("Bordered - Accent 5")
+    var oTable = Api.CreateTable(3, 3);
+    oTable.SetWidth("percent", 50);
+    oTable.SetStyle(oTableStyle);
+    oDocument.Push(oTable);
+    var arrTables = oDocument.GetAllTablesOnPage(0);
+    oRow_1 = arrTables[0].GetRow(0);
+    oRow_1.Remove();
+```
+
+> Во-вторых написал баг на Никиту Хромова
+
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=48023>
+
 Version: 6.0.0 (build:105)
 
 ### Text document API/ApiChart/GetPrevChart
 
-`Ошибка при вызове метода.`
+Ошибка при вызове метода.
 
 ```js
 builder.CreateFile("docx");
-var oDocument = Api.GetDocument();
-var oParagraph = oDocument.GetElement(0);
-var oChart = Api.CreateChart("bar3D", [
-  [200, 240, 280],
-  [250, 260, 280]
-], ["Projected Revenue", "Estimated Costs"], [2014, 2015, 2016], 4051300, 2347595, 24);
-oChart.SetVerAxisTitle("USD In Hundred Thousands", 10);
-oChart.SetHorAxisTitle("Year", 11);
+var oDocument = Api.GetDocument();
+var oParagraph = oDocument.GetElement(0);
+var oChart = Api.CreateChart("bar3D", [
+  [200, 240, 280],
+  [250, 260, 280]
+], ["Projected Revenue", "Estimated Costs"], [2014, 2015, 2016], 4051300, 2347595, 24);
+oChart.SetVerAxisTitle("USD In Hundred Thousands", 10);
+oChart.SetHorAxisTitle("Year", 11);
 oChart.SetLegendPos("bottom");
-oChart.SetShowDataLabels(false, false, true, false);
-oChart.SetTitle("Financial Overview", 13);
+oChart.SetShowDataLabels(false, false, true, false);
+oChart.SetTitle("Financial Overview", 13);
 oParagraph.AddDrawing(oChart);
-var oCopyChart = oChart.Copy();
+var oCopyChart = oChart.Copy();
 oParagraph.AddDrawing(oCopyChart);
-var oPrevChart = oCopyChart.GetPrevChart();
-var oStroke = Api.CreateStroke(1 * 150, Api.CreateSolidFill(Api.CreateRGBColor(155, 64, 1)));
+var oPrevChart = oCopyChart.GetPrevChart();
+var oStroke = Api.CreateStroke(1 * 150, Api.CreateSolidFill(Api.CreateRGBColor(155, 64, 1)));
 oPrevChart.SetMinorHorizontalGridlines(oStroke);
-builder.SaveFile("docx", "GetPrevChart.docx");
+builder.SaveFile("docx", "GetPrevChart.docx");
 builder.CloseFile();
 ```
+
+>Написал баг на Никиту Хромова
+
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=48027>
 
 Version: 6.0.0 (build:105)
 
@@ -170,6 +192,7 @@ Version: 6.0.0 (build:105)
 
 `Метод срабатывает, но почему-то на строке oDrawings[1].Fill(oFill); возникает ошибка. Хотя точно такой же пример, но для ApiDocument работает.`
 
+```js
 builder.CreateFile("docx");
 var oDocument = Api.GetDocument();
 var oParagraph = oDocument.GetElement(0);
@@ -186,6 +209,7 @@ oFill = Api.CreateSolidFill(Api.CreateRGBColor(61, 74, 107));
 oDrawings[1].Fill(oFill);
 builder.SaveFile("docx", "GetAllShapes.docx");
 builder.CloseFile();
+```
 
 Version: 6.0.0 (build:105)
 
@@ -193,6 +217,7 @@ Version: 6.0.0 (build:105)
 
 `Та же проблема, что и с предыдущим методом.`
 
+```js
 builder.CreateFile("docx");
 var oDocument = Api.GetDocument();
 var oParagraph = oDocument.GetElement(0);
@@ -216,6 +241,7 @@ oStroke = Api.CreateStroke(1 * 150, Api.CreateSolidFill(Api.CreateRGBColor(
 oCharts[1].SetMinorHorizontalGridhlines(oStroke);
 builder.SaveFile("docx", "GetAllCarts.docx");
 builder.CloseFile();
+```
 
 Version: 6.0.0 (build:105)
 
@@ -223,6 +249,7 @@ Version: 6.0.0 (build:105)
 
 `Ошибка при добавлении параграфа в таблицу или ячейку. Проблема с методом AddElement. Тоже самое и для класса ApiRun.`
 
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oTableStyle = oDocument.CreateStyle("CustomTableStyle", "table");
@@ -239,6 +266,7 @@ oCell = oParentTable.GetRow(2).GetCell(0);
 oParentTable.RemoveRow(oCell);
 builder.SaveFile("docx", "GetParentTable.docx");
 builder.CloseFile();
+```
 
 Version: 6.0.0 (build:105)
 
@@ -246,6 +274,7 @@ Version: 6.0.0 (build:105)
 
 `Ошибка при вызове метода.`
 
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oParagraph = oDocument.GetElement(0);
@@ -260,6 +289,7 @@ oParagraph.AddText("Displayed text: " + oDisplayedText);
 oDocument.Push(oParagraph);
 builder.SaveFile("docx", "GetDisplayedText.docx");
 builder.CloseFile();
+```
 
 Version: 6.0.0 (build:105)
 
@@ -267,6 +297,7 @@ Version: 6.0.0 (build:105)
 
 `Метод GetElement() ничего не выводит при индексе 0, первый run выводит при индексе 1, а второй при индексе 2. При этом метод GetElementsCount выдает значение 4, хотя у нас в параграфе всего 2 run.`
 
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oParagraph = oDocument.GetElement(0);
@@ -281,7 +312,9 @@ oParagraph.AddElement(oElement);
 oDocument.Push(oParagraph);
 builder.SaveFile("docx", "GetElement.docx");
 builder.CloseFile();
+```
 
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oParagraph = oDocument.GetElement(0);
@@ -296,6 +329,7 @@ oParagraph.AddText("Number of elements in hyperlink: " + oElementsCount);
 oDocument.Push(oParagraph);
 builder.SaveFile("docx", "GetElementsCount.docx");
 builder.CloseFile();
+```
 
 Version: 6.0.0 (build:105)
 
@@ -303,6 +337,7 @@ Version: 6.0.0 (build:105)
 
 `Что имеется в виду под стилем гиперссылки? Если стиль отображаемого текста, но метод у меня не срабатывает.`
 
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oParagraph = oDocument.GetElement(0);
@@ -313,11 +348,13 @@ oParagraph.SetFontSize(16);
 oHyperlink.SetDefaultStyle();
 builder.SaveFile("docx", "SetDefaultStyle .docx");
 builder.CloseFile();
+```
 
 Version: 6.0.0 (build:105)
 
 ### Text document API/ApiRun/GetParentContentControl
 
+```js
 При вызове метода - false.
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
@@ -334,11 +371,13 @@ oParagraph.AddText("Class type: " + oClassType);
 oDocument.Push(oParagraph);
 builder.SaveFile("docx", "GetParentContentControl.docx");
 builder.CloseFile();
+```
 
 Version: 6.0.0 (build:105)
 
 ### Text document API/ApiSection/GetNext и GetPrevious
 
+```js
 Методы не работают.
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
@@ -360,9 +399,11 @@ oParagraph = oHeader.GetElement(0);
 oParagraph.AddText("This is a page header");
 builder.SaveFile("docx", "GetPrevious.docx");
 builder.CloseFile();
+```
 
 Version: 6.0.0 (build:105)
 
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oParagraph = oDocument.GetElement(0);
@@ -379,12 +420,15 @@ oParagraph = oHeader.GetElement(0);
 oParagraph.AddText("This is a page header");
 builder.SaveFile("docx", "GetNext.docx");
 builder.CloseFile();
+```
 
 Version: 6.0.0 (build:105)
 
 ### Text document API/ApiTable/Split
 
 Если ставить количество столбцов, на которые нужно разбить ячейку, не больше 1, то все работает. Но при установке параметра nCols больше единицы, у меня вообще все зависает и приходится перезагружать документ. При повторном открытии этого документа появляется таблица, но совсем не такая, какая должна быть. То же самое и для ApiTableCell.
+
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oTableStyle = oDocument.CreateStyle("CustomTableStyle", "table");
@@ -397,12 +441,15 @@ oCell = oTable.GetCell(0, 0);
 oTable.Split(oCell, 2, 1);
 builder.SaveFile("docx", "Split.docx");
 builder.CloseFile();
+```
+
 Version: 6.0.0 (build:105)
 
 ### Text document API/ApiTable/AddElement
 
 `Как я уже писала выше, этот метод у меня не работает. Такая же проблема с этим методом и для ApiTableCell.`
 
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oTableStyle = oDocument.CreateStyle("CustomTableStyle", "table");
@@ -416,12 +463,15 @@ oParagraph.AddText("This is just a sample text in the first cell.");
 oTable.AddElement(0, oParagraph);
 builder.SaveFile("docx", "AddElement.docx");
 builder.CloseFile();
+```
 
 Version: 6.0.0 (build:105)
 
 ### Text document API/ApiTable/GetNext
 
 Не работает. Возвращает null, хотя таблица не последняя. То же и с GetPrevious.
+
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oTableStyle = oDocument.CreateStyle("CustomTableStyle", "table");
@@ -440,7 +490,9 @@ oNextTable = oTable1.GetNext();
 oNextTable.SetTableBorderTop("single", 32, 0, 0, 0, 255);
 builder.SaveFile("docx", "GetNext.docx");
 builder.CloseFile();
+```
 
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oTableStyle = oDocument.CreateStyle("CustomTableStyle", "table");
@@ -459,6 +511,7 @@ oPreviousTable = oTable2.GetPrevious();
 oPreviousTable.SetTableBorderTop("single", 32, 0, 0, 0, 255);
 builder.SaveFile("docx", "GetPrevious.docx");
 builder.CloseFile();
+```
 
 Version: 6.0.0 (build:105)
 
@@ -466,6 +519,7 @@ Version: 6.0.0 (build:105)
 
 `Возвращает true, но таблица при этом не удаляется.`
 
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oTableStyle = oDocument.CreateStyle("CustomTableStyle", "table");
@@ -480,16 +534,25 @@ oParagraph.AddText("The table was removed from the document.");
 oDocument.Push(oParagraph);
 builder.SaveFile("docx", "Delete.docx");
 builder.CloseFile();
+```
+
 Version: 6.0.0 (build:105)
 
 ### Text document API/Api
 
-`Ошибки при вызове методов CreateRange, CreateHyperlink, AddComment, GetFirstRunInArray, GetLastRunInArray.`
+`Ошибки при вызове методов`
+
+1. CreateRange
+2. CreateHyperlink
+3. AddComment
+4. GetFirstRunInArray
+5. GetLastRunInArray
 
 ### Text document API/ApiBlockLvlSdt/Delete
 
 `Блок не удаляется.`
 
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oBlockLvlSdt = Api.CreateBlockLvlSdt();
@@ -500,11 +563,13 @@ oParagraph = oDocument.GetElement(0);
 oParagraph.AddText("The block text content control was removed from the document.")
 builder.SaveFile("docx", "Delete.docx");
 builder.CloseFile();
+```
 
 ### Text document API/ApiBlockLvlSdt/GetAllContentControls
 
 `Метод не работает.`
 
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oBlockLvlSdt = Api.CreateBlockLvlSdt();
@@ -520,11 +585,13 @@ oParagraph = Api.CreateParagraph();
 oParagraph.AddText("Class type of the first element in array: " + aContentControls[0].GetClassType());
 builder.SaveFile("docx", "GetAllContentControls.docx");
 builder.CloseFile();
+```
 
 ### Text document API/ApiBlockLvlSdt/GetAllDrawingObjects
 
 `Метод не работает.`
 
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oBlockLvlSdt = Api.CreateBlockLvlSdt();
@@ -550,11 +617,13 @@ oFill = Api.CreateSolidFill(Api.CreateRGBColor(61, 74, 107));
 aDrawingObjects[0].Fill(oFill);
 builder.SaveFile("docx", "GetAllDrawingObjects.docx");
 builder.CloseFile();
+```
 
 ### Text document API/ApiBlockLvlSdt/GetAllTablesOnPage
 
 `Метод не работает.`
 
+```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
 oBlockLvlSdt = Api.CreateBlockLvlSdt();
@@ -574,6 +643,7 @@ oCell = aTables[0].GetRow(1).GetCell(0);
 aTables[0].RemoveRow(oCell);
 builder.SaveFile("docx", "GetAllTablesOnPage.docx");
 builder.CloseFile();
+```
 
 ## Spreadsheet
 
