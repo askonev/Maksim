@@ -190,7 +190,7 @@ Version: 6.0.0 (build:105)
 
 ### Text document API/ApiParagraph/GetAllShapes
 
-`Метод срабатывает, но почему-то на строке oDrawings[1].Fill(oFill); возникает ошибка. Хотя точно такой же пример, но для ApiDocument работает.`
+Метод срабатывает, но почему-то на строке oDrawings[1].Fill(oFill); возникает ошибка. Хотя точно такой же пример, но для ApiDocument работает.
 
 ```js
 builder.CreateFile("docx");
@@ -211,11 +211,20 @@ builder.SaveFile("docx", "GetAllShapes.docx");
 builder.CloseFile();
 ```
 
+Возможно проблема в изменении типа самого объекта после метода GetAllShapes
+
+>Написал баг на Никиту Хромова
+
+Надобно изменить метод в api.onlyoffice.com и добавить demo
+<https://api.onlyoffice.com/docbuilder/textdocumentapi/apidrawing/fill>
+
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=48036>
+
 Version: 6.0.0 (build:105)
 
 ### Text document API/ApiParagraph/GetAllCharts
 
-`Та же проблема, что и с предыдущим методом.`
+Та же проблема, что и с предыдущим методом.
 
 ```js
 builder.CreateFile("docx");
@@ -242,6 +251,10 @@ oCharts[1].SetMinorHorizontalGridhlines(oStroke);
 builder.SaveFile("docx", "GetAllCarts.docx");
 builder.CloseFile();
 ```
+
+>Согласен, так же после метода GetAllCharts изменения свойств не применяются
+
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=48036>
 
 Version: 6.0.0 (build:105)
 
