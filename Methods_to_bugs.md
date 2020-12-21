@@ -260,7 +260,7 @@ Version: 6.0.0 (build:105)
 
 ### Text document API/ApiParagraph/GetParentTable и GetParentTableCell
 
-`Ошибка при добавлении параграфа в таблицу или ячейку. Проблема с методом AddElement. Тоже самое и для класса ApiRun.`
+Ошибка при добавлении параграфа в таблицу или ячейку. Проблема с методом AddElement. Тоже самое и для класса ApiRun.
 
 ```js
 builder.CreateFile("docx");
@@ -281,11 +281,18 @@ builder.SaveFile("docx", "GetParentTable.docx");
 builder.CloseFile();
 ```
 
+>Ошибка в документировании метода. Некорректно описан параметр `function(oCell, nPos, oElement)`
+
+```js
+oCell = oTable.GetCell(0,0);
+oTable.AddElement(oCell, 0, oParagraph);
+```
+
 Version: 6.0.0 (build:105)
 
 ### Text document API/ApiHyperlink/GetDisplayedText
 
-`Ошибка при вызове метода.`
+Ошибка при вызове метода.
 
 ```js
 builder.CreateFile("docx");
@@ -302,6 +309,21 @@ oParagraph.AddText("Displayed text: " + oDisplayedText);
 oDocument.Push(oParagraph);
 builder.SaveFile("docx", "GetDisplayedText.docx");
 builder.CloseFile();
+```
+
+> Завел баг на Н.Хромова
+
+Возможный способ упрощения скрипта
+
+```js
+oDocument = Api.GetDocument();
+oParagraph = oDocument.GetElement(0);
+oParagraph.AddText("ONLYOFFICE Document Builder");
+oHyperlink = oParagraph.AddHyperlink("http://api.teamlab.info/docbuilder/basic");
+oDisplayedText = oHyperlink.GetDisplayedText();
+oParagraph = Api.CreateParagraph();
+oParagraph.AddText("Displayed text: " + oDisplayedText);
+oDocument.Push(oParagraph);
 ```
 
 Version: 6.0.0 (build:105)
