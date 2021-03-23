@@ -35,11 +35,14 @@
 
 *Ошибок не выдает, но bullet перед строкой не выводится. `В sdkjs указано, что этот метод только для CSE и CPE`. Следовательно, неправильно работают и методы:*
 
->Text document API/Api/CreateNumbering
+- Text document API/Api/CreateNumbering
+- Text document API/ApiParagraph/SetBullet
+- Text document API/ApiParaPr/SetBullet
+
+>`Исключить из документации`
 >
->Text document API/ApiParagraph/SetBullet
->
->Text document API/ApiParaPr/SetBullet
+>Для CDE есть **CreateNumbering**, нужно работать через него.
+>SetBullet - это для презентаций и таблиц
 
 ```js
 builder.CreateFile("docx");
@@ -53,11 +56,6 @@ builder.CloseFile();
 ```
 
 (Version: 5.6.3 (build:2))
-
->Косяк в документации
->
->Для CDE есть **CreateNumbering**, нужно работать через него.
->SetBullet - это для презентаций и таблиц
 
 ```js
 oDocument = Api.GetDocument();
@@ -209,6 +207,9 @@ Version: 6.0.0 (build:105)
 
 *Метод срабатывает, но почему-то на строке oDrawings[1].Fill(oFill); возникает ошибка. Хотя точно такой же пример, но для ApiDocument работает.*
 
+>fix in 6.3
+https://bugzilla.onlyoffice.com/show_bug.cgi?id=48036
+
 ```js
 builder.CreateFile("docx");
 var oDocument = Api.GetDocument();
@@ -227,11 +228,6 @@ oDrawings[1].Fill(oFill);
 builder.SaveFile("docx", "GetAllShapes.docx");
 builder.CloseFile();
 ```
-
->bug
-<https://bugzilla.onlyoffice.com/show_bug.cgi?id=48036>
-
-Version: 6.0.0 (build:105)
 
 ### Text document API/ApiParagraph/GetAllCharts
 
@@ -390,7 +386,10 @@ Version: 6.0.0 (build:105)
 
 *Что имеется в виду под стилем гиперссылки? Если стиль отображаемого текста, но метод у меня не срабатывает.*
 
->Задал вопрос Хромову
+>У объекта Hyperlink есть две дефолтных настройки это подчеркивание и цвет.
+>
+>bug
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=49234>
 
 ```js
 builder.CreateFile("docx");
@@ -398,11 +397,8 @@ oDocument = Api.GetDocument();
 oParagraph = oDocument.GetElement(0);
 oParagraph.AddText("Api Document Builder");
 oHyperlink = oParagraph.AddHyperlink("http://api.teamlab.info/docbuilder/basic");
-
-oText = oHyperlink.GetLinkedText();
-
-oParagraph.SetFontSize(16);
-
+oParagraph.SetColor(255, 0, 255);
+oParagraph.SetDoubleStrikeout(true);
 oHyperlink.SetDefaultStyle();
 builder.SaveFile("docx", "SetDefaultStyle .docx");
 builder.CloseFile();
@@ -444,6 +440,7 @@ Version: 6.0.0 (build:105)
 *Методы не работают.*
 
 >bug
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=49209>
 
 ```js
 builder.CreateFile("docx");
@@ -491,9 +488,9 @@ builder.CloseFile();
 
 Version: 6.0.0 (build:105)
 
-### Text document API/ApiTable/Split
+### Text document API/ApiTable/Split ApiTableCell/Split
 
-*Если ставить количество столбцов, на которые нужно разбить ячейку, не больше 1, то все работает. Но при установке параметра nCols больше единицы, у меня вообще все зависает и приходится перезагружать документ. При повторном открытии этого документа появляется таблица, но совсем не такая, какая должна быть. То же самое и для ApiTableCell.*
+`Если ставить количество столбцов, на которые нужно разбить ячейку, не больше 1, то все работает. Но при установке параметра nCols больше единицы, у меня вообще все зависает и приходится перезагружать документ. При повторном открытии этого документа появляется таблица, но совсем не такая, какая должна быть. То же самое и для ApiTableCell.`
 
 ```js
 builder.CreateFile("docx");
@@ -534,12 +531,9 @@ builder.CloseFile();
 
 Version: 6.0.0 (build:105)
 
-### Text document API/ApiTable/GetNext
+### Text document API/ApiTable/GetNext ApiSection/GetPrevious
 
-Не работает. Возвращает null, хотя таблица не последняя. То же и с GetPrevious.
-
->bug
-<https://bugzilla.onlyoffice.com/show_bug.cgi?id=49209>
+`Не работает. Возвращает null, хотя таблица не последняя. То же и с GetPrevious.`
 
 ```js
 builder.CreateFile("docx");
@@ -589,6 +583,8 @@ Version: 6.0.0 (build:105)
 
 *Возвращает true, но таблица при этом не удаляется.*
 
+> после добавления происходит пересчет, пока пересчет не случился они не отобразятся в тех методах
+>
 >bug
 
 ```js
@@ -614,13 +610,12 @@ Version: 6.0.0 (build:105)
 
 `Ошибки при вызове методов`
 
->Задал вопрос Хромову
+>bug
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=49247>
 
 1. CreateRange
 2. CreateHyperlink
 3. AddComment
-4. GetFirstRunInArray
-5. GetLastRunInArray
 
 ### Text document API/ApiBlockLvlSdt/Delete
 
@@ -719,6 +714,7 @@ builder.CloseFile();
 *Метод не работает.*
 
 >bug
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=49236>
 
 ```js
 builder.CreateFile("docx");
@@ -739,6 +735,155 @@ aTables = oBlockLvlSdt.GetAllTablesOnPage();
 oCell = aTables[0].GetRow(1).GetCell(0);
 aTables[0].RemoveRow(oCell);
 builder.SaveFile("docx", "GetAllTablesOnPage.docx");
+builder.CloseFile();
+```
+
+### Text document API/ApiDrawing/Delete
+
+`Исправить метод на api.temlab.info`
+
+```js
+builder.CreateFile("docx");
+oDocument = Api.GetDocument();
+oParagraph = oDocument.GetElement(0);
+oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
+oStroke = Api.CreateStroke(0, Api.CreateNoFill());
+oDrawing = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
+oParagraph.AddDrawing(oDrawing);
+oDrawing.Delete();
+oParentParagraph.AddLineBreak();
+oParentParagraph.AddText("In this paragraph, the object Drawing has been deleted");
+builder.SaveFile("docx", "Delete.docx");
+builder.CloseFile();
+```
+
+### Text document API/ApiDrawing/GetParentTable
+
+`Не устанавливается стиль`
+
+```js
+builder.CreateFile("docx");
+oDocument = Api.GetDocument();
+oParagraph = Api.CreateParagraph();
+oTable = Api.CreateTable(3, 3);
+oTable.SetWidth("percent", 100);
+oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
+oStroke = Api.CreateStroke(0, Api.CreateNoFill());
+oDrawing = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
+oCell = oTable.GetCell(1, 1);
+oCell.GetContent().GetElement(0).AddDrawing(oDrawing);
+oDocument.Push(oTable);
+oParentTable = oDrawing.GetParentTable();
+oTableStyle.SetBasedOn(oDocument.GetStyle("Table Grid"));
+oParentTable.SetStyle(oTableStyle);
+builder.SaveFile("docx", "GetParentTable.docx");
+builder.CloseFile();
+```
+
+### Text document API/ApiDrawing/ScaleHeight и ScaleWidth
+
+`Методы, вроде, срабатывают. Потом я закрываю документ, открываю его снова, а там пусто.`
+
+```js
+builder.CreateFile("docx");
+oDocument = Api.GetDocument();
+oParagraph = oDocument.GetElement(0);
+for ( i = 3; i > 0; i-- ){
+oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
+oStroke = Api.CreateStroke(0, Api.CreateNoFill());
+oDrawing = Api.CreateShape("cube", 3212465, 963295, oFill, oStroke);
+oParagraph.AddDrawing(oDrawing);
+oDrawing.ScaleHeight( i );}
+builder.SaveFile("docx", "ScaleHeight.docx");
+builder.CloseFile();
+```
+
+```js
+builder.CreateFile("docx");
+oDocument = Api.GetDocument();
+oParagraph = oDocument.GetElement(0);
+for (i = 1; i < 4; i++ ){
+oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
+oStroke = Api.CreateStroke(0, Api.CreateNoFill());
+oDrawing = Api.CreateShape("cube", 963295, 963295, oFill, oStroke);
+oParagraph.AddDrawing(oDrawing);
+oDrawing.ScaleWidth( i );}
+builder.SaveFile("docx", "ScaleWidth.docx");
+builder.CloseFile();
+```
+
+### Text document API/ApiParagraph/Last
+
+```js
+builder.CreateFile("docx");
+oDocument = Api.GetDocument();
+oParagraph = oDocument.GetElement(0);
+oRun_1 = Api.CreateRun();
+oRun_1.AddText("This is an Run with text. ");
+oParagraph.Push(oRun_1);
+oRun_2 = Api.CreateRun();
+oRun_2.AddText("And this is the last Run in the paragraph.");
+oParagraph.Push(oRun_2);
+oLastRun = oParagraph.Last();
+oLastRun.SetBold(true);
+builder.SaveFile("docx", "Last.docx");
+builder.CloseFile();
+```
+
+### Text document API/ApiParagraph/WrapInMailMergeField API/ApiRun/WrapInMailMergeField
+
+Я не особо поняла, что должно произойти при вызове этого метода, но в любом случае ничего не происходит.
+
+>Я откатил изменения для этих методов на Api.onlyoffice
+>Данные методы не заливали в прод тк функционал еще правят. Как он выйдет, объясню для чего данные методы.
+
+```js
+(ApiRun)
+builder.CreateFile("docx");
+oDocument = Api.GetDocument();
+oParagraph = oDocument.GetElement(0);
+oRun = Api.CreateRun();
+oRun.AddText("Name");
+oParagraph.AddElement(oRun);
+oRun.WrapInMailMergeField();
+oParagraph.AddLineBreak();
+oRun = Api.CreateRun();
+oRun.AddText("Surname");
+oParagraph.AddElement(oRun);
+oRun.WrapInMailMergeField();
+builder.SaveFile(\"docx\", \"WrapInMailMergeField.docx\");
+builder.CloseFile();
+```
+
+```js
+(ApiParagraph)
+builder.CreateFile("docx");
+oDocument = Api.GetDocument();
+oParagraph = oDocument.GetElement(0);
+oParagraph.AddText("Paragraph wrapped in 'Mail Merge Field'");
+oParagraph.WrapInMailMergeField();
+builder.SaveFile("docx", "WrapInMailMergeField.docx");
+builder.CloseFile();
+```
+
+### ApiTableRow/Search
+
+*Выделяет всю строку, а не конкретный объект в массиве.*
+
+>Метод работает корректно
+
+```js
+builder.CreateFile("docx");
+oDocument = Api.GetDocument();
+oTable = Api.CreateTable(3, 3);
+oRow = oTable.GetRow(0);
+oRow.GetCell(0).GetContent().GetElement(0).AddText("text");
+oRow.GetCell(1).GetContent().GetElement(0).AddText("text");
+oRow.GetCell(2).GetContent().GetElement(0).AddText("text");
+oDocument.Push(oTable);
+oRowSearch = oRow.Search("tex", true);
+oRowSearch[1].SetBold("true");
+builder.SaveFile("docx", "Search.docx");
 builder.CloseFile();
 ```
 
@@ -763,13 +908,31 @@ _Как использовать методы класса ApiDocument для т
 
 ### Spreadsheet API/ApiRange/ForEach
 
-`Вообще не поняла, для чего его используют.`
+```js
+builder.CreateFile("xlsx");
+oWorksheet = Api.GetActiveSheet();
+oWorksheet.GetRange("A1").SetValue("1");
+oWorksheet.GetRange("B1").SetValue("2");
+oWorksheet.GetRange("C1").SetValue("3");
+oRange = oWorksheet.GetRange("A1:C1");
+oRange.ForEach(function (range) {
+    sValue = range.GetValue();
+    if (sValue != "1") {
+        range.SetBold(true);
+    }
+});
+builder.SaveFile("xlsx", "ForEach.xlsx");
+builder.CloseFile();
+```
 
 ### Spreadsheet API/ApiRange/SetHidden
 
-Не скрывает ячейки.
+`Не скрывает ячейки.`
 
 >Написал баг на Александра Трофимова
+>
+>bug
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=46849>
 
 ```js
 builder.CreateFile("xlsx");
@@ -784,11 +947,11 @@ builder.SaveFile("xlsx", "SetHidden.xlsx");
 builder.CloseFile();
 ```
 
- (Version: 5.6.3 (build:2)
+(Version: 5.6.3 (build:2)
 
 ### Spreadsheet API/ApiRange/GetHidden
 
-`Возвращает тип null. Т.е. возникает ошибка.
+`Возвращает тип null. Т.е. возникает ошибка.`
 
 >В develop возвращает в данном скрипте bool = false
 >Перепроверить после фикса SetHidden()
@@ -830,6 +993,9 @@ builder.CloseFile();
 Высота строки не меняется.
 
 >Написал баг на Александра Трофимова
+>
+>bug
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=46850>
 
 ```js
 builder.CreateFile("xlsx");
@@ -841,7 +1007,7 @@ builder.CloseFile();
 
 (Version: 5.6.3 (build:2)
 
-### **Spreadsheet** API/ApiWorksheet/ReplaceCurrentImage **Presentation** API/ApiPresentation/ReplaceCurrentImage
+### API/ApiWorksheet/ReplaceCurrentImage
 
 *Метод работает, но у меня получается сделать это только в два этапа. Т.е. сначала вставляем картинку, потом выходим из макроса, выделяем картинку и уже после этого используем метод ReplaceCurrentImage. Я не нашла метода, с помощью которого можно было бы выделить картинку.*
 
@@ -889,6 +1055,7 @@ Version: 6.0.0 (build:105)
 
 `Не работает.`
 
+```js
 builder.CreateFile("xlsx");
 var oWorksheet = Api.GetActiveSheet();
 var oRange = oWorksheet.GetRange("A1:C1");
@@ -897,8 +1064,8 @@ var oSelection = oRange.Select();
 oSelection.SetFillColor(Api.CreateColorFromRGB(255, 224, 204));
 builder.SaveFile("xlsx", "Select.xlsx");
 builder.CloseFile();
+```
 
->Символ вместо пробела «°»
 >Результат у меня
 
 *Н. А почему он не выполняет команду  oSelection.SetFillColor(Api.CreateColorFromRGB(255, 224, 204)) ? Что вообще возвращает этот метод? Видимо, не ApiRange?
@@ -906,7 +1073,6 @@ SetFillColor должен возвращать либо true либо false (л�
 
 Просто проблема в том, что такого примера, который ниже, будет недостаточно, потому что в demo этого выделения не видно.
 Я так понял, идея примера в том что бы изменить цвет value, тем самым продемонстрировать работу метода, но что-то пошло не так
-Посмотрю в пн внимательно
 
 *H. Я вроде поняла причину. Метод  Select возвращает undefined. Следовательно, применить метод SetFillColor к тому, что возвращает Select, я не могу.
 Подумаю, как еще можно показать работу метода.*
@@ -917,6 +1083,7 @@ Version: 6.0.0 (build:105)
 
 `Не работает.`
 
+```js
 builder.CreateFile("xlsx");
 var oWorksheet = Api.GetActiveSheet();
 var oRange1 = oWorksheet.GetRange("A1:C5");
@@ -925,6 +1092,7 @@ var oRange = Api.Intersect(oRange1, oRange2);
 oRange.SetFillColor(Api.CreateColorFromRGB(255, 224, 204));
 builder.SaveFile("xlsx", "GetCells.xlsx");
 builder.CloseFile();
+```
 
 Version: 6.0.0 (build:105)
 
@@ -932,6 +1100,7 @@ Version: 6.0.0 (build:105)
 
 `Не работает.`
 
+```js
 builder.CreateFile("xlsx");
 var oWorksheet = Api.GetActiveSheet();
 oWorksheet.GetRange("A1").SetValue("1");
@@ -942,6 +1111,7 @@ oComment.Delete();
 oWorksheet.GetRange("A3").SetValue("The comment from the cell A1 was deleted.");
 builder.SaveFile("xlsx", "Delete.xlsx");
 builder.CloseFile();
+```
 
 Version: 6.0.0 (build:105)
 
@@ -972,6 +1142,7 @@ Version: 6.0.0 (build:105)
 
 `Ошибка при вызове SetActive.`
 
+```js
 builder.CreateFile("xlsx");
 var oSheet = Api.AddSheet("New_sheet");
 oSheet.SetActive();
@@ -979,6 +1150,7 @@ oWorksheet = Api.GetActiveSheet();
 oWorksheet.GetRange("A1").SetValue("The current sheet is active.");
 builder.SaveFile("xlsx", "SetActive.xlsx");
 builder.CloseFile();
+```
 
 Version: 6.0.0 (build:105)
 
@@ -991,6 +1163,8 @@ Version: 6.0.0 (build:105)
 `При вызове методов GetPrintHeadings, SetPrintHeadings, GetPrintGridlines, SetPrintGridlines возникает ошибка.`
 
 ## Presentation
+
+### API/ApiPresentation/ReplaceCurrentImage
 
 ### Presentation API/Api/CreateGroup
 
@@ -1024,283 +1198,3 @@ Version: 6.0.0 (build:105)
 ```
 
 Version: 6.0.0 (build:105)
-
-### ApiDrawing
-
-1. AddBreak
-
-    ```js
-    builder.CreateFile("docx");
-    oDocument = Api.GetDocument();
-    oParagraph = oDocument.GetElement(0);
-    oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
-    oStroke = Api.CreateStroke(0, Api.CreateNoFill());
-    oDrawing = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
-    oParagraph.AddDrawing(oDrawing);
-    oDrawing.InsertParagraph("Added an LineBreak after this paragraph.", "before", false);
-    oDrawing.AddBreak(1, "before");
-    builder.SaveFile("docx", "AddBreak.docx");
-    builder.CloseFile();
-    ```
-
-2. Delete
-
-    ```js
-    builder.CreateFile("docx");
-    oDocument = Api.GetDocument();
-    oParagraph = oDocument.GetElement(0);
-    oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
-    oStroke = Api.CreateStroke(0, Api.CreateNoFill());
-    oDrawing = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
-    oParagraph.AddDrawing(oDrawing);
-    oDrawing.Delete();
-    oParentParagraph.AddLineBreak();
-    oParentParagraph.AddText("In this paragraph, the object Drawing has been deleted");
-    builder.SaveFile("docx", "Delete.docx");
-    builder.CloseFile();
-    ```
-
-3. Select
-
-    ```js
-    builder.CreateFile("docx");
-    oDocument = Api.GetDocument();
-    oParagraph = oDocument.GetElement(0);
-    oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
-    oStroke = Api.CreateStroke(0, Api.CreateNoFill());
-    oDrawing = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
-    oParagraph.AddDrawing(oDrawing);
-    oDrawing.InsertParagraph("The Select property is applied to the drawing object", "before", false);
-    oDrawing.Select();
-    builder.SaveFile("docx", "Select.docx");
-    builder.CloseFile();
-    ```
-
-4. ScaleHeight
-
-    ```js
-    builder.CreateFile("docx");
-    oDocument = Api.GetDocument();
-    oParagraph = oDocument.GetElement(0);
-    for ( i = 3; i > 0; i-- ){
-    oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
-    oStroke = Api.CreateStroke(0, Api.CreateNoFill());
-    oDrawing = Api.CreateShape("cube", 3212465, 963295, oFill, oStroke);
-    oParagraph.AddDrawing(oDrawing);
-    oDrawing.ScaleHeight( i );} 
-    builder.SaveFile("docx", "ScaleHeight.docx");
-    builder.CloseFile();
-    ```
-
-5. ScaleWidth
-
-    ```js
-    builder.CreateFile("docx");
-    oDocument = Api.GetDocument();
-    oParagraph = oDocument.GetElement(0);
-        for (i = 1; i < 4; i++ ){
-    oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
-    oStroke = Api.CreateStroke(0, Api.CreateNoFill());
-    oDrawing = Api.CreateShape("cube", 963295, 963295, oFill, oStroke);
-    oParagraph.AddDrawing(oDrawing);
-    oDrawing.ScaleWidth( i );}
-    builder.SaveFile("docx", "ScaleWidth.docx");
-    builder.CloseFile();
-    ```
-
-6. GetParentParagraph
-
-    ```js
-    builder.CreateFile("docx");
-    oDocument = Api.GetDocument();
-    oParagraph = oDocument.GetElement(0);
-    oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
-    oStroke = Api.CreateStroke(0, Api.CreateNoFill());
-    oDrawing = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
-    oParagraph.AddDrawing(oDrawing);
-    oParentParagraph = oDrawing.GetParentParagraph();
-    oParentParagraph.AddLineBreak();
-    oParentParagraph.AddText("This is a parent paragraph");
-    builder.SaveFile("docx", "GetParentParagraph.docx");
-    builder.CloseFile();
-    ```
-
-7. GetParentTableCell
-
-    ```js
-    builder.CreateFile("docx");
-    oDocument = Api.GetDocument();
-    oParagraph = Api.CreateParagraph();
-    oTable = Api.CreateTable(3, 3);
-    oTable.SetWidth("percent", 100);
-    oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
-    oStroke = Api.CreateStroke(0, Api.CreateNoFill());
-    oDrawing = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
-    oCell = oTable.GetCell(1, 1);
-    oCell.GetContent().GetElement(0).AddDrawing(oDrawing);
-    oDocument.Push(oTable);
-    oParentCell = oDrawing.GetParentTableCell();
-    oCellContent = oParentCell.GetContent().GetElement(0);
-    oCellContent.AddLineBreak();
-    oCellContent.AddText("This is a parent cell");
-    builder.SaveFile("docx", "GetParentTableCell.docx");
-    builder.CloseFile();
-    ```
-
-8. GetParentTable
-
-    ```js
-    builder.CreateFile("docx");
-    oDocument = Api.GetDocument();
-    oParagraph = Api.CreateParagraph();
-    oTable = Api.CreateTable(3, 3);
-    oTable.SetWidth("percent", 100);
-    oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
-    oStroke = Api.CreateStroke(0, Api.CreateNoFill());
-    oDrawing = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
-    oCell = oTable.GetCell(1, 1);
-    oCell.GetContent().GetElement(0).AddDrawing(oDrawing);
-    oDocument.Push(oTable);
-    oParentTable = oDrawing.GetParentTable();
-    oTableStyle.SetBasedOn(oDocument.GetStyle("Table Grid"));
-    oParentTable.SetStyle(oTableStyle);
-    builder.SaveFile("docx", "GetParentTable.docx");
-    builder.CloseFile();
-    ```
-
-9. InsertInContentControl
-
-    ```js
-    builder.CreateFile("docx");
-    oDocument = Api.GetDocument();
-    oParagraph = oDocument.GetElement(0);
-    oParagraph.AddText("This graphic object was wrapped in content control");
-    oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
-    oStroke = Api.CreateStroke(0, Api.CreateNoFill());
-    oDrawing = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
-    oParagraph.AddDrawing(oDrawing);
-    oDrawing.InsertInContentControl(1);
-    builder.SaveFile("docx", "InsertInContentControl.docx");
-    builder.CloseFile();
-    ```
-
-10. InsertParagraph
-
-    ```js
-    builder.CreateFile("docx");
-    oDocument = Api.GetDocument();
-    oParagraph = oDocument.GetElement(0);
-    oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
-    oStroke = Api.CreateStroke(0, Api.CreateNoFill());
-    oDrawing = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
-    oParagraph.AddDrawing(oDrawing);
-    oDrawing.InsertParagraph("This is inserted paragraph.", "before", true);
-    builder.SaveFile("docx", "InsertParagraph.docx");
-    builder.CloseFile();
-    ```
-
-11. ScaleHeight и ScaleWidth
-
-    ```js
-        Методы, вроде, срабатывают. Потом я закрываю документ, открываю его снова, а там пусто.
-        builder.CreateFile("docx");
-        oDocument = Api.GetDocument();
-        oParagraph = oDocument.GetElement(0);
-        for ( i = 3; i > 0; i-- ){
-        oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
-        oStroke = Api.CreateStroke(0, Api.CreateNoFill());
-        oDrawing = Api.CreateShape("cube", 3212465, 963295, oFill, oStroke);
-        oParagraph.AddDrawing(oDrawing);
-        oDrawing.ScaleHeight( i );}
-        builder.SaveFile("docx", "ScaleHeight.docx");
-        builder.CloseFile();
-    ```
-
-    ```js
-        builder.CreateFile("docx");
-        oDocument = Api.GetDocument();
-        oParagraph = oDocument.GetElement(0);
-            for (i = 1; i < 4; i++ ){
-        oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
-        oStroke = Api.CreateStroke(0, Api.CreateNoFill());
-        oDrawing = Api.CreateShape("cube", 963295, 963295, oFill, oStroke);
-        oParagraph.AddDrawing(oDrawing);
-        oDrawing.ScaleWidth( i );}
-        builder.SaveFile("docx", "ScaleWidth.docx");
-        builder.CloseFile();
-    ```
-
-### ApiParagraph
-
-1. Last
-
-    ```js
-    builder.CreateFile("docx");
-    oDocument = Api.GetDocument();
-    oParagraph = oDocument.GetElement(0);
-    oRun_1 = Api.CreateRun();
-    oRun_1.AddText("This is an Run with text. ");
-    oParagraph.Push(oRun_1);
-    oRun_2 = Api.CreateRun();
-    oRun_2.AddText("And this is the last Run in the paragraph.");
-    oParagraph.Push(oRun_2);
-    oLastRun = oParagraph.Last();
-    oLastRun.SetBold(true);
-    builder.SaveFile("docx", "Last.docx");
-    builder.CloseFile();
-    ```
-
-2. WrapInMailMergeField (для ApiParagraph и ApiRun). Я не особо поняла, что должно произойти при вызове этого метода, но в любом случае ничего не происходит.
-
->Я откатил изменения для этих методов на Api.onlyoffice
->Данные методы не заливали в прод тк функционал еще правят. Как он выйдет, объясню для чего данные методы.
-
-```js
-    (ApiRun)
-    builder.CreateFile("docx");
-    oDocument = Api.GetDocument();
-    oParagraph = oDocument.GetElement(0);
-    oRun = Api.CreateRun();
-    oRun.AddText("Name");
-    oParagraph.AddElement(oRun);
-    oRun.WrapInMailMergeField();
-    oParagraph.AddLineBreak();
-    oRun = Api.CreateRun();
-    oRun.AddText("Surname");
-    oParagraph.AddElement(oRun);
-    oRun.WrapInMailMergeField();
-    builder.SaveFile(\"docx\", \"WrapInMailMergeField.docx\");
-    builder.CloseFile();
-```
-
-```js
-    (ApiParagraph)
-    builder.CreateFile("docx");
-    oDocument = Api.GetDocument();
-    oParagraph = oDocument.GetElement(0);
-    oParagraph.AddText("Paragraph wrapped in 'Mail Merge Field'");
-    oParagraph.WrapInMailMergeField();
-    builder.SaveFile("docx", "WrapInMailMergeField.docx");
-    builder.CloseFile();
-```
-
-### ApiTableRow
-
-1. Search
-
-`Выделяет всю строку, а не конкретный объект в массиве.`
-
-```js
-    builder.CreateFile("docx");
-    oDocument = Api.GetDocument();
-    oTable = Api.CreateTable(3, 3);
-    oRow = oTable.GetRow(0);
-    oRow.GetCell(0).GetContent().GetElement(0).AddText("text");
-    oRow.GetCell(1).GetContent().GetElement(0).AddText("text");
-    oRow.GetCell(2).GetContent().GetElement(0).AddText("text");
-    oDocument.Push(oTable);
-    oRowSearch = oRow.Search("tex", true);
-    oRowSearch[1].SetBold("true");
-    builder.SaveFile("docx", "Search.docx");
-    builder.CloseFile();
-```
