@@ -6,31 +6,6 @@
 
 ## Document Editor
 
-### Text document API/Api/CreateBlockLvlSdt
-
-*Выдает ошибку при попытке вызвать метод.
-Следовательно, не работают также все методы класса **ApiBlockLvlSdt**.*
-
->Text document API/ApiBlockLvlSdt/GetAlias
->
->Text document API/ApiBlockLvlSdt/GetClassType
->
->Text document API/ApiBlockLvlSdt/GetContent
->
->Text document API/ApiBlockLvlSdt/GetLabel
->
->Text document API/ApiBlockLvlSdt/GetLock
->
->Text document API/ApiBlockLvlSdt/GetTag
->
->Text document API/ApiBlockLvlSdt/SetAlias
->
->Text document API/ApiBlockLvlSdt/SetLabel
->
->Text document API/ApiBlockLvlSdt/SetLock
->
->Text document API/ApiBlockLvlSdt/SetTag
-
 ### Text document API/Api/CreateBullet
 
 *Ошибок не выдает, но bullet перед строкой не выводится. `В sdkjs указано, что этот метод только для CSE и CPE`. Следовательно, неправильно работают и методы:*
@@ -39,7 +14,7 @@
 - Text document API/ApiParagraph/SetBullet
 - Text document API/ApiParaPr/SetBullet
 
->`Исключить из документации`
+>Иcключить из документации
 >
 >Для CDE есть **CreateNumbering**, нужно работать через него.
 >SetBullet - это для презентаций и таблиц
@@ -208,7 +183,7 @@ Version: 6.0.0 (build:105)
 *Метод срабатывает, но почему-то на строке oDrawings[1].Fill(oFill); возникает ошибка. Хотя точно такой же пример, но для ApiDocument работает.*
 
 >fix in 6.3
-https://bugzilla.onlyoffice.com/show_bug.cgi?id=48036
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=48036>
 
 ```js
 builder.CreateFile("docx");
@@ -490,7 +465,10 @@ Version: 6.0.0 (build:105)
 
 ### Text document API/ApiTable/Split ApiTableCell/Split
 
-`Если ставить количество столбцов, на которые нужно разбить ячейку, не больше 1, то все работает. Но при установке параметра nCols больше единицы, у меня вообще все зависает и приходится перезагружать документ. При повторном открытии этого документа появляется таблица, но совсем не такая, какая должна быть. То же самое и для ApiTableCell.`
+*Если ставить количество столбцов, на которые нужно разбить ячейку, не больше 1, то все работает. Но при установке параметра nCols больше единицы, у меня вообще все зависает и приходится перезагружать документ. При повторном открытии этого документа появляется таблица, но совсем не такая, какая должна быть. То же самое и для ApiTableCell.*
+
+>bug
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=49298>
 
 ```js
 builder.CreateFile("docx");
@@ -511,7 +489,21 @@ Version: 6.0.0 (build:105)
 
 ### Text document API/ApiTable/AddElement
 
-`Как я уже писала выше, этот метод у меня не работает. Такая же проблема с этим методом и для ApiTableCell.`
+*Как я уже писала выше, этот метод у меня не работает. Такая же проблема с этим методом и для ApiTableCell.*
+
+>ApiTable.prototype.AddElement = function(oCell, nPos, oElement)
+>
+>ApiTableCell/AddElement работатет
+
+```js
+oDocument = Api.GetDocument();
+oTable = Api.CreateTable(3, 3);
+oDocument.Push(oTable);
+oParagraph = Api.CreateParagraph();
+oParagraph.AddText("This is just a sample text in the first cell.");
+oCell = oTable.GetCell(0, 0);
+oCell.AddElement(0, oParagraph);
+```
 
 ```js
 builder.CreateFile("docx");
@@ -534,6 +526,28 @@ Version: 6.0.0 (build:105)
 ### Text document API/ApiTable/GetNext ApiSection/GetPrevious
 
 `Не работает. Возвращает null, хотя таблица не последняя. То же и с GetPrevious.`
+
+>Необходим пересчет документа.
+
+```js
+oDocument = Api.GetDocument();
+oTable1 = Api.CreateTable(3, 3);
+oTable1.SetWidth("percent", 100);
+oDocument.Push(oTable1);
+oTable2 = Api.CreateTable(3, 3);
+oTable2.SetWidth("percent", 100);
+oDocument.Push(oTable2);
+oNextTable = oTable1.GetNext();
+alert(oNextTable);
+```
+
+```js
+oDocument = Api.GetDocument();
+oTable = oDocument.GetElement(1);
+oNext = oTable.GetNext();
+oNext.SetTableBorderTop("single", 32, 0, 0, 0, 255);
+alert(oNext.GetClassType());
+```
 
 ```js
 builder.CreateFile("docx");
@@ -583,32 +597,40 @@ Version: 6.0.0 (build:105)
 
 *Возвращает true, но таблица при этом не удаляется.*
 
-> после добавления происходит пересчет, пока пересчет не случился они не отобразятся в тех методах
->
->bug
+>после добавления происходит пересчет. До пересчета документа для методов в макросе созданная таблица является объектом paragraph.
 
 ```js
-builder.CreateFile("docx");
-oDocument = Api.GetDocument();
-oTableStyle = oDocument.CreateStyle("CustomTableStyle", "table");
-oTableStyle.SetBasedOn(oDocument.GetStyle("Bordered - Accent 5"));
-oTable = Api.CreateTable(3, 3);
-oTable.SetWidth("percent", 100);
-oTable.SetStyle(oTableStyle);
-oDocument.Push(oTable);
-oTable.Delete();
-oParagraph = Api.CreateParagraph();
-oParagraph.AddText("The table was removed from the document.");
-oDocument.Push(oParagraph);
-builder.SaveFile("docx", "Delete.docx");
-builder.CloseFile();
+    oDocument = Api.GetDocument();
+    oTable = Api.CreateTable(3, 3);
+    oDocument.Push(oTable);
+    oTable.Delete();
 ```
 
 Version: 6.0.0 (build:105)
 
+### Text document API/Apitable/Gettables
+
+```js
+oDocument = Api.GetDocument();
+oTable1 = Api.CreateTable(3, 3);
+oDocument.Push(oTable1);
+oTable2 = Api.CreateTable(2, 2);
+oCell = oTable1.GetCell(0,0);
+oTable1.AddElement(oCell, 0, oTable2);
+console.log(aTables = oTable1.GetTables());
+```
+
+```js
+oDocument = Api.GetDocument();
+oTable = oDocument.GetElement(1);
+aTables = oTable.GetTables();
+aTables[0].SetTableBorderTop("single", 32, 0, 0, 0, 255);
+console.log(aTables);
+```
+
 ### Text document API/Api
 
-`Ошибки при вызове методов`
+*Ошибки при вызове методов.*
 
 >bug
 <https://bugzilla.onlyoffice.com/show_bug.cgi?id=49247>
@@ -619,7 +641,7 @@ Version: 6.0.0 (build:105)
 
 ### Text document API/ApiBlockLvlSdt/Delete
 
-`Блок не удаляется.`
+`<question> Блок не удаляется.`
 
 ```js
 builder.CreateFile("docx");
@@ -655,7 +677,8 @@ builder.CloseFile();
 
 *Метод не работает.*
 
-> Нюанс Block Content Control. Вложенность CC друг в друга поддерживает только inline CC
+>bug
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=49297>
 
 ```js
 builder.CreateFile("docx");
@@ -680,33 +703,29 @@ builder.CloseFile();
 *Метод не работает.*
 
 >Возвращает false при попытке вставить draw объекты
+>Необходимо оборачивать в Paragraph элементы уровнем ниже (Run, Shape,Chart. Image) что бы вставить в СС
 
 ```js
-builder.CreateFile("docx");
 oDocument = Api.GetDocument();
+oParagraph = Api.CreateParagraph();
 oBlockLvlSdt = Api.CreateBlockLvlSdt();
-oGs1 = Api.CreateGradientStop(Api.CreateRGBColor(255, 224, 204), 0);
-oGs2 = Api.CreateGradientStop(Api.CreateRGBColor(255, 164, 101), 100000);
-oFill = Api.CreateLinearGradientFill([oGs1, oGs2], 5400000);
+
+oFill = Api.CreateSolidFill(Api.CreateRGBColor(255, 0, 255));
 oStroke = Api.CreateStroke(0, Api.CreateNoFill());
 oDrawing1 = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
-oBlockLvlSdt.AddElement(oDrawing1, 0);
-oDrawing2 = Api.CreateChart("bar3D", [
-    [200, 240, 280],
-    [250, 260, 280]
-], ["Projected Revenue", "Estimated Costs"], [2014, 2015, 2016], 4051300, 2347595, 24);
-oDrawing2.SetVerAxisTitle("USD In Hundred Thousands", 10);
-oDrawing2.SetHorAxisTitle("Year", 11);
-oDrawing2.SetLegendPos("bottom");
-oDrawing2.SetShowDataLabels(false, false, true, false);
-oDrawing2.SetTitle("Financial Overview", 13);
-oBlockLvlSdt.AddElement(oDrawing2, 1);
+
+oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
+oStroke = Api.CreateStroke(0, Api.CreateNoFill());
+oDrawing2 = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
+
+oParagraph.AddDrawing(oDrawing1);
+oParagraph.AddDrawing(oDrawing2);
+
+oBlockLvlSdt.AddElement(oParagraph, 0);
 oDocument.AddElement(0, oBlockLvlSdt);
-aDrawingObjects = oBlockLvlSdt.GetAllDrawingObjects();
-oFill = Api.CreateSolidFill(Api.CreateRGBColor(61, 74, 107));
-aDrawingObjects[0].Fill(oFill);
-builder.SaveFile("docx", "GetAllDrawingObjects.docx");
-builder.CloseFile();
+
+arrAllDrawingObjects = oBlockLvlSdt.GetAllDrawingObjects();
+arrAllDrawingObjects[0].Delete();
 ```
 
 ### Text document API/ApiBlockLvlSdt/GetAllTablesOnPage
@@ -738,9 +757,23 @@ builder.SaveFile("docx", "GetAllTablesOnPage.docx");
 builder.CloseFile();
 ```
 
-### Text document API/ApiDrawing/Delete
+### Text document API/ApiInlineLvlSdt/GetParentTable
 
-`Исправить метод на api.temlab.info`
+```js
+oDocument = Api.GetDocument();
+oTable = Api.CreateTable(2, 2);
+oInlineLvlSdt = Api.CreateInlineLvlSdt();
+oInlineLvlSdt.AddText("TEST");
+oParagraph.AddInlineLvlSdt(oInlineLvlSdt);
+oCell = oTable.GetCell(0,0);
+oTable.AddElement(oCell, 0, oParagraph);
+oDocument.Push(oTable);
+oParentTableCell = oInlineLvlSdt.GetParentTableCell();
+oParentTableCell.Clear();
+console.log(oParentTableCell.GetClassType());
+```
+
+### Text document API/ApiDrawing/Delete
 
 ```js
 builder.CreateFile("docx");
@@ -759,7 +792,7 @@ builder.CloseFile();
 
 ### Text document API/ApiDrawing/GetParentTable
 
-`Не устанавливается стиль`
+`<question> Не устанавливается стиль`
 
 ```js
 builder.CreateFile("docx");
@@ -782,7 +815,7 @@ builder.CloseFile();
 
 ### Text document API/ApiDrawing/ScaleHeight и ScaleWidth
 
-`Методы, вроде, срабатывают. Потом я закрываю документ, открываю его снова, а там пусто.`
+`<question> Методы, вроде, срабатывают. Потом я закрываю документ, открываю его снова, а там пусто.`
 
 ```js
 builder.CreateFile("docx");
@@ -927,10 +960,8 @@ builder.CloseFile();
 
 ### Spreadsheet API/ApiRange/SetHidden
 
-`Не скрывает ячейки.`
+`<question> Не скрывает ячейки.`
 
->Написал баг на Александра Трофимова
->
 >bug
 <https://bugzilla.onlyoffice.com/show_bug.cgi?id=46849>
 
@@ -951,7 +982,7 @@ builder.CloseFile();
 
 ### Spreadsheet API/ApiRange/GetHidden
 
-`Возвращает тип null. Т.е. возникает ошибка.`
+`<question> Возвращает тип null. Т.е. возникает ошибка.`
 
 >В develop возвращает в данном скрипте bool = false
 >Перепроверить после фикса SetHidden()
@@ -975,7 +1006,7 @@ builder.CloseFile();
 
 ### Spreadsheet API/ApiRange/SetOffset
 
-`Не понимаю, что делает этот метод. Он вроде работает, но ничего не меняется.`
+`<question> Не понимаю, что делает этот метод. Он вроде работает, но ничего не меняется.`
 
 ```js
 builder.CreateFile("xlsx");
@@ -992,8 +1023,6 @@ builder.CloseFile();
 
 Высота строки не меняется.
 
->Написал баг на Александра Трофимова
->
 >bug
 <https://bugzilla.onlyoffice.com/show_bug.cgi?id=46850>
 
@@ -1007,7 +1036,7 @@ builder.CloseFile();
 
 (Version: 5.6.3 (build:2)
 
-### API/ApiWorksheet/ReplaceCurrentImage
+### Spreadsheet API/ApiWorksheet/ReplaceCurrentImage
 
 *Метод работает, но у меня получается сделать это только в два этапа. Т.е. сначала вставляем картинку, потом выходим из макроса, выделяем картинку и уже после этого используем метод ReplaceCurrentImage. Я не нашла метода, с помощью которого можно было бы выделить картинку.*
 
@@ -1053,7 +1082,7 @@ Version: 6.0.0 (build:105)
 
 ### Spreadsheet API/ApiRange/Select
 
-`Не работает.`
+`<question> Не работает.`
 
 ```js
 builder.CreateFile("xlsx");
@@ -1081,7 +1110,7 @@ Version: 6.0.0 (build:105)
 
 ### Spreadsheet API/Api/Intersect
 
-`Не работает.`
+`<question> Не работает.`
 
 ```js
 builder.CreateFile("xlsx");
@@ -1098,7 +1127,7 @@ Version: 6.0.0 (build:105)
 
 ### Spreadsheet API/ApiComment/Delete
 
-`Не работает.`
+`<question> Не работает.`
 
 ```js
 builder.CreateFile("xlsx");
@@ -1117,7 +1146,7 @@ Version: 6.0.0 (build:105)
 
 ### Spreadsheet API/ApiParagraph/Copy
 
-`Не работает.`
+`<question> Не работает.`
 
 ```js
 builder.CreateFile("xlsx");
@@ -1140,7 +1169,7 @@ Version: 6.0.0 (build:105)
 
 ### Spreadsheet API/ApiWorksheet/SetActive
 
-`Ошибка при вызове SetActive.`
+`<question> Ошибка при вызове SetActive.`
 
 ```js
 builder.CreateFile("xlsx");
@@ -1156,11 +1185,11 @@ Version: 6.0.0 (build:105)
 
 ### Spreadsheet API/ApiTable
 
-`Я не нашла метод для создания таблицы, поэтому методы для этого класса использовать не могу.`
+`<question> Я не нашла метод для создания таблицы, поэтому методы для этого класса использовать не могу.`
 
 ### Spreadsheet API/ApiWorksheet
 
-`При вызове методов GetPrintHeadings, SetPrintHeadings, GetPrintGridlines, SetPrintGridlines возникает ошибка.`
+`<question> При вызове методов GetPrintHeadings, SetPrintHeadings, GetPrintGridlines, SetPrintGridlines возникает ошибка.`
 
 ## Presentation
 
@@ -1175,7 +1204,7 @@ Version: 6.0.0 (build:105)
 
 ### Presentation API/ApiTable/Copy
 
-`Ошибка при вызове метода Copy.`
+`<question> Ошибка при вызове метода Copy.`
 
 ```js
     builder.CreateFile("pptx");
