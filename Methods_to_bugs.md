@@ -525,7 +525,7 @@ Version: 6.0.0 (build:105)
 
 ### Text document API/ApiTable/GetNext ApiSection/GetPrevious
 
-`Не работает. Возвращает null, хотя таблица не последняя. То же и с GetPrevious.`
+*Не работает. Возвращает null, хотя таблица не последняя. То же и с GetPrevious.*
 
 >Необходим пересчет документа.
 
@@ -641,36 +641,34 @@ console.log(aTables);
 
 ### Text document API/ApiBlockLvlSdt/Delete
 
-`<question> Блок не удаляется.`
+*Блок не удаляется.*
 
-```js
-builder.CreateFile("docx");
-oDocument = Api.GetDocument();
-oBlockLvlSdt = Api.CreateBlockLvlSdt();
-oBlockLvlSdt.AddText("This is a block text content control.");
-oDocument.AddElement(0, oBlockLvlSdt);
-oBlockLvlSdt.Delete(false);
-oParagraph = oDocument.GetElement(0);
-oParagraph.AddText("The block text content control was removed from the document.")
-builder.SaveFile("docx", "Delete.docx");
-builder.CloseFile();
-```
-
->Метод работает в виде двух последовательных макросов. Возможно особенность пересчета документа
->
->Уточняю у Кирилова
+>Необходим пересчет документа
 
 ```js
     oDocument = Api.GetDocument();
     oBlockLvlSdt = Api.CreateBlockLvlSdt();
-    oBlockLvlSdt.AddText("This is a block text content control.");
+    oBlockLvlSdt.AddText("The block text content control was removed from the document.");
     oDocument.AddElement(0, oBlockLvlSdt);
 ```
 
 ```js
     oDocument = Api.GetDocument();
-    Count = oDocument.GetElementsCount();
-    oDocument.GetElement(0).Delete(false);
+    oBlockLvlSdt = oDocument.GetElement(0);
+    oBlockLvlSdt.Delete(false);
+```
+
+>В одном макросе не срабатывает
+
+```js
+    builder.CreateFile("docx");
+    oDocument = Api.GetDocument();
+    oBlockLvlSdt = Api.CreateBlockLvlSdt();
+    oBlockLvlSdt.AddText("The block text content control was removed from the document.");
+    oDocument.AddElement(0, oBlockLvlSdt);
+    oBlockLvlSdt.Delete(true);
+    builder.SaveFile("docx", "Delete.docx");
+    builder.CloseFile();
 ```
 
 ### Text document API/ApiBlockLvlSdt/GetAllContentControls
@@ -792,7 +790,44 @@ builder.CloseFile();
 
 ### Text document API/ApiDrawing/GetParentTable
 
-`<question> Не устанавливается стиль`
+*Не устанавливается стиль.*
+
+>Что бы вставить Draw в таблицу надо обернуть ее в параграф
+
+```js
+oDocument = Api.GetDocument();
+oParagraph = Api.CreateParagraph();
+oTable = Api.CreateTable(3, 3);
+oTable.SetWidth("percent", 100);
+oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
+oStroke = Api.CreateStroke(0, Api.CreateNoFill());
+oDrawing = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
+oParagraph.AddDrawing(oDrawing);
+oCell = oTable.GetCell(1, 1);
+oCell.AddElement(0, oParagraph);
+oDocument.Push(oTable);
+```
+
+>Конечный скрипт
+
+```js
+oDocument = Api.GetDocument();
+oParagraph = Api.CreateParagraph();
+oTable = Api.CreateTable(3, 3);
+oTable.SetWidth("percent", 100);
+oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
+oStroke = Api.CreateStroke(0, Api.CreateNoFill());
+oDrawing = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
+oParagraph.AddDrawing(oDrawing);
+oCell = oTable.GetCell(1, 1);
+oCell.AddElement(0, oParagraph);
+oDocument.Push(oTable);
+oParentTable = oDrawing.GetParentTable();
+oTableStyle = oDocument.GetStyle("Bordered - Accent 5");   
+oParentTable.SetStyle(oTableStyle);
+```
+
+>Некорректно используется метод ApiStyle/SetBasedOn
 
 ```js
 builder.CreateFile("docx");
@@ -815,7 +850,10 @@ builder.CloseFile();
 
 ### Text document API/ApiDrawing/ScaleHeight и ScaleWidth
 
-`<question> Методы, вроде, срабатывают. Потом я закрываю документ, открываю его снова, а там пусто.`
+*Методы, вроде, срабатывают. Потом я закрываю документ, открываю его снова, а там пусто.*
+
+>bug
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=49313>
 
 ```js
 builder.CreateFile("docx");
@@ -960,7 +998,7 @@ builder.CloseFile();
 
 ### Spreadsheet API/ApiRange/SetHidden
 
-`<question> Не скрывает ячейки.`
+*Не скрывает ячейки.*
 
 >bug
 <https://bugzilla.onlyoffice.com/show_bug.cgi?id=46849>
@@ -1021,7 +1059,7 @@ builder.CloseFile();
 
 ### Spreadsheet API/ApiRange/SetRowHeight
 
-Высота строки не меняется.
+*Высота строки не меняется.*
 
 >bug
 <https://bugzilla.onlyoffice.com/show_bug.cgi?id=46850>
@@ -1054,7 +1092,7 @@ builder.CloseFile();
 
 *Метод не работает.*
 
->Завел баг на Сергея Лузянина
+>bug
 <https://bugzilla.onlyoffice.com/show_bug.cgi?id=47201>
 
 ```js
