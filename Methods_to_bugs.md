@@ -773,6 +773,8 @@ console.log(oParentTableCell.GetClassType());
 
 ### Text document API/ApiDrawing/Delete
 
+>fixed in api.onlyoffice
+
 ```js
 builder.CreateFile("docx");
 oDocument = Api.GetDocument();
@@ -782,8 +784,8 @@ oStroke = Api.CreateStroke(0, Api.CreateNoFill());
 oDrawing = Api.CreateShape("rect", 3212465, 963295, oFill, oStroke);
 oParagraph.AddDrawing(oDrawing);
 oDrawing.Delete();
-oParentParagraph.AddLineBreak();
-oParentParagraph.AddText("In this paragraph, the object Drawing has been deleted");
+oParagraph.AddLineBreak();
+oParagraph.AddText("In this paragraph, the object Drawing has been deleted");
 builder.SaveFile("docx", "Delete.docx");
 builder.CloseFile();
 ```
@@ -977,6 +979,107 @@ _Как использовать методы класса ApiDocument для т
 - Presentation API/ApiDocument/RemoveAllElements
 - Presentation API/ApiDocument/RemoveElement
 
+### Spreadsheet API/ApiWorksheet
+
+`<question>`
+
+>Ошибка при вызове методов
+
+- GetPrintGridlines
+- GetPrintHeadings
+- SetPrintGridlines
+- SetPrintHeadings
+
+```js
+VM1400:1 Uncaught TypeError: oWorksheet.SetPrintGridlines is not a function
+```
+
+### Spreadsheet API/ApiShape/SetPaddings
+
+`<question>`
+
+>У класса ApiShape нет метода SetPaddings
+
+### Spreadsheet API/ApiParagraph/Copy
+
+`<question>`
+
+```js
+oWorksheet = Api.GetActiveSheet();
+//console.log(oWorksheet);
+oParagraph = Api.CreateParagraph();
+oParagraph.AddText("We removed all elements from the shape and added a new paragraph inside it.");
+oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
+oStroke = Api.CreateStroke(0, Api.CreateNoFill());
+oShape = oWorksheet.AddShape("accentBorderCallout1", 200 * 36000, 60 * 36000, oFill, oStroke, 0, 2 * 36000, 0, 3 * 36000);
+oDocContent = oShape.GetDocContent();
+//console.log(oDocContent.GetClassType());
+oParagraph = oDocContent.GetElement(0);
+//console.log(oElement.GetClassType());
+oParagraph.AddText("TEST");
+oParagraphCopy = oDocContent.GetElement(0).Copy();
+//console.log(oParagraphCopy.GetClassType());
+```
+
+```error
+sdk-all.js:13360 Uncaught TypeError: Cannot read property 'Ga' of undefined
+    at Kc (sdk-all.js:13360)
+    at Ta.Oa (sdk-all.js:13421)
+    at <anonymous>:1:44
+```
+
+### Spreadsheet API/ApiRun/SetShd API/ApiRun/SetHighlight
+
+`<question>`
+
+>Не срабатывает, возвращает обфусцированный объект
+
+```js
+oWorksheet = Api.GetActiveSheet();
+oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
+oStroke = Api.CreateStroke(0, Api.CreateNoFill());
+oShape = oWorksheet.AddShape("flowChartOnlineStorage", 120 * 36000, 70 * 36000, oFill, oStroke, 0, 2 * 36000, 0, 3 * 36000);
+oDocContent = oShape.GetDocContent();
+oParagraph = oDocContent.GetElement(0);
+
+oRun = Api.CreateRun();
+oRun.AddText("This is just a sample text. Nothing special.");
+oRun.SetShd("clear", 0, 255, 0);
+
+oParagraph.AddElement(oRun);
+```
+
+```js
+oWorksheet = Api.GetActiveSheet();
+oFill = Api.CreateSolidFill(Api.CreateRGBColor(104, 155, 104));
+oStroke = Api.CreateStroke(0, Api.CreateNoFill());
+oShape = oWorksheet.AddShape("flowChartOnlineStorage", 120 * 36000, 70 * 36000, oFill, oStroke, 0, 2 * 36000, 0, 3 * 36000);
+oDocContent = oShape.GetDocContent();
+oParagraph = oDocContent.GetElement(0);
+
+oRun = Api.CreateRun();
+oRun.AddText("This is just a sample text. Nothing special.");
+oRun.SetHighlight(255, 255, 0);
+
+oParagraph.AddElement(oRun);
+```
+
+### Spreadsheet API/ApiRun/SetStyle
+
+>Для использования метода ApiRun.SetStyle необходимо получить объект класса **ApiStyle** что не реализовано для Worksheet
+
+### Spreadsheet API/ApiName/GetRefersToRange
+
+```js
+oWorksheet = Api.GetActiveSheet();
+oWorksheet.GetRange("A1").SetValue("1");
+oWorksheet.GetRange("B1").SetValue("2");
+Api.AddDefName("numbers", "Sheet1!$A$1:$B$1");
+oDefName = Api.GetDefName("numbers");
+oRange = oDefName.GetRefersToRange();
+oRange.SetBold(true);
+```
+
 ### Spreadsheet API/ApiRange/ForEach
 
 ```js
@@ -1000,18 +1103,19 @@ builder.CloseFile();
 
 *Не скрывает ячейки.*
 
->bug
+>fix in_dev
 <https://bugzilla.onlyoffice.com/show_bug.cgi?id=46849>
 
 ```js
 builder.CreateFile("xlsx");
-var oWorksheet = Api.GetActiveSheet();
-var oRange = oWorksheet.GetRange("A1:C1");
+    var oWorksheet = Api.GetActiveSheet();
+// либо выбираются столбы, либо строки для установки данного флага
+// var oRange = oWorksheet.GetCols("A:C")
+var oRange = oWorksheet.GetRows("1:3")
 oRange.SetHidden(true);
 oWorksheet.GetRange("A1").SetValue("1");
 oWorksheet.GetRange("B1").SetValue("2");
 oWorksheet.GetRange("C1").SetValue("3");
-oWorksheet.GetRange("A3").SetValue("The values in cells A1:C1 are hidden.");
 builder.SaveFile("xlsx", "SetHidden.xlsx");
 builder.CloseFile();
 ```
@@ -1020,10 +1124,10 @@ builder.CloseFile();
 
 ### Spreadsheet API/ApiRange/GetHidden
 
-`<question> Возвращает тип null. Т.е. возникает ошибка.`
+*Возвращает тип null. Т.е. возникает ошибка.*
 
->В develop возвращает в данном скрипте bool = false
->Перепроверить после фикса SetHidden()
+>Work
+>Фикс SetHidden() <https://bugzilla.onlyoffice.com/show_bug.cgi?id=46849>
 
 ```js
 builder.CreateFile("xlsx");
@@ -1044,15 +1148,16 @@ builder.CloseFile();
 
 ### Spreadsheet API/ApiRange/SetOffset
 
-`<question> Не понимаю, что делает этот метод. Он вроде работает, но ничего не меняется.`
+*Не понимаю, что делает этот метод. Он вроде работает, но ничего не меняется.*
+
+>работает, только не возвращает новый объект range, a меняет текущий.
 
 ```js
-builder.CreateFile("xlsx");
 var oWorksheet = Api.GetActiveSheet();
-oWorksheet.GetRange("B3").SetValue("This is a sample text with cell offset specified.");
-oWorksheet.GetRange("B3").SetOffset(2, 1);
-builder.SaveFile("xlsx", "SetOffset.xlsx");
-builder.CloseFile();
+oWorksheet.GetRange("B3").SetValue(“Old Range”);
+var range = oWorksheet.GetRange("B3");
+range.SetOffset(2, 2);
+range.SetValue("New Range");
 ```
 
 (Version: 5.6.3 (build:2)
@@ -1061,7 +1166,7 @@ builder.CloseFile();
 
 *Высота строки не меняется.*
 
->bug
+>fix in dev
 <https://bugzilla.onlyoffice.com/show_bug.cgi?id=46850>
 
 ```js
@@ -1076,7 +1181,23 @@ builder.CloseFile();
 
 ### Spreadsheet API/ApiWorksheet/ReplaceCurrentImage
 
-*Метод работает, но у меня получается сделать это только в два этапа. Т.е. сначала вставляем картинку, потом выходим из макроса, выделяем картинку и уже после этого используем метод ReplaceCurrentImage. Я не нашла метода, с помощью которого можно было бы выделить картинку.*
+`<question> Метод работает, но у меня получается сделать это только в два этапа. Т.е. сначала вставляем картинку, потом выходим из макроса, выделяем картинку и уже после этого используем метод ReplaceCurrentImage. Я не нашла метода, с помощью которого можно было бы выделить картинку.`
+
+1. Ответ Матвеева
+
+    Сейчас готового метода в api нет, да и не понятно как там выделять картинку (когда у тебя их в документе куча и ты не знаешь какая из них какая, так как можно дел натворить нехороших). Но я порысля в коде и нашёл как это всё же можно сделать.
+
+    сначала тебе нужно получить список всех графических объектов в документе это делается через
+
+    oWorksheet.objectRender.controller.getDrawingArray()
+
+    дальше среди них ищешь нужную тебе картинку и выполняешь две эти строчки
+
+    ```js
+    var oController = oWorksheet.objectRender.controller
+    oController.resetSelection();
+    oController.selectObject(`сюда надо отправить целеком картинку из списка, которую ты получил выше`, 0);
+    ```
 
 ```js
 builder.CreateFile("xlsx");
@@ -1120,35 +1241,29 @@ Version: 6.0.0 (build:105)
 
 ### Spreadsheet API/ApiRange/Select
 
-`<question> Не работает.`
+*Не работает.*
+
+>work
 
 ```js
 builder.CreateFile("xlsx");
-var oWorksheet = Api.GetActiveSheet();
-var oRange = oWorksheet.GetRange("A1:C1");
+oWorksheet = Api.GetActiveSheet();
+oRange = oWorksheet.GetRange("A1:C1");
 oRange.SetValue("1");
-var oSelection = oRange.Select();
-oSelection.SetFillColor(Api.CreateColorFromRGB(255, 224, 204));
+oRange.Select();
+Api.GetSelection().SetValue("selected");
 builder.SaveFile("xlsx", "Select.xlsx");
 builder.CloseFile();
 ```
-
->Результат у меня
-
-*Н. А почему он не выполняет команду  oSelection.SetFillColor(Api.CreateColorFromRGB(255, 224, 204)) ? Что вообще возвращает этот метод? Видимо, не ApiRange?
-SetFillColor должен возвращать либо true либо false (либо undefined я заводил баг недавно на решение вопроса о возвращении всеми методами bool значений)*
-
-Просто проблема в том, что такого примера, который ниже, будет недостаточно, потому что в demo этого выделения не видно.
-Я так понял, идея примера в том что бы изменить цвет value, тем самым продемонстрировать работу метода, но что-то пошло не так
-
-*H. Я вроде поняла причину. Метод  Select возвращает undefined. Следовательно, применить метод SetFillColor к тому, что возвращает Select, я не могу.
-Подумаю, как еще можно показать работу метода.*
 
 Version: 6.0.0 (build:105)
 
 ### Spreadsheet API/Api/Intersect
 
-`<question> Не работает.`
+*Не работает.*
+
+>bug
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=49411>
 
 ```js
 builder.CreateFile("xlsx");
@@ -1166,6 +1281,9 @@ Version: 6.0.0 (build:105)
 ### Spreadsheet API/ApiComment/Delete
 
 `<question> Не работает.`
+
+>bug
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=49413>
 
 ```js
 builder.CreateFile("xlsx");
