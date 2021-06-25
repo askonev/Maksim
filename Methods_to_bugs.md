@@ -45,6 +45,42 @@ oParagraph.SetNumbering(oNumLvl);
 oDocument.Push(oParagraph);
 ```
 
+### Text document API/Apiparapr/setstyle
+
+>bug
+<https://bugzilla.onlyoffice.com/show_bug.cgi?id=50999>
+
+```js
+oDocument = Api.GetDocument();
+oMyStyle = oDocument.CreateStyle("My document style");
+oParaPr = oMyStyle.GetParaPr();
+oParaPr.SetShd("clear", 0, 255, 0, false);
+oParagraph = oDocument.GetElement(0);
+oParagraph.AddText("test");
+oParagraph.SetStyle(oMyStyle);
+```
+
+### Text document API/ReplaceTextSmart
+
+```js
+    oDocument = editor.GetDocument();
+    oFParagraph = oDocument.GetElement(0);
+    oFParagraph.AddText("First paragraph");
+    oSParagraph = editor.CreateParagraph();
+    oSParagraph.AddText("Second Paragraph");
+    oDocument.Push(oSParagraph);
+    
+    oRange1 = oFParagraph.GetRange();
+    oRange2 = oSParagraph.GetRange();
+    
+    oRange3 = oRange1.ExpandTo(oRange2);
+    oRange3.Select();
+    
+    arr = ["test_1", "test_2"];
+    
+    Api.ReplaceTextSmart(arr);
+```
+
 ### Text document API/ApiDocument/SearchAndReplace
 
 *Что мы должны передавать в параметр oProperties? Paragraph? Но с ним у меня не работает.
@@ -385,8 +421,10 @@ Version: 6.0.0 (build:105)
 
 *При вызове метода - false.*
 
->bug
+>invalid
 <https://bugzilla.onlyoffice.com/show_bug.cgi?id=49206>
+>
+>fix_bug
 <https://bugzilla.onlyoffice.com/show_bug.cgi?id=49207>
 
 ```js
@@ -730,8 +768,11 @@ arrAllDrawingObjects[0].Delete();
 
 *Метод не работает.*
 
->bug
+>invalid
 <https://bugzilla.onlyoffice.com/show_bug.cgi?id=49236>
+>
+>Неправильное использование метода.
+>Необходимо передать параметр - номер страницы, например: oBlockLvlSdt.GetAllTablesOnPage(0);
 
 ```js
 builder.CreateFile("docx");
